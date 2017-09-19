@@ -24,22 +24,12 @@ function createWindow () {
     'accept-first-mouse': true,
     'title-bar-style': 'hidden'
   });
-  let unityVersion;
-  let unityFolders = fse.readdirSync(config.unitypath);
-  for (let i = 0; i < unityFolders.length; i++) {
-    if (process.platform == 'darwin') {
-      console.log(path.join(config.unitypath, unityFolders[i], 'Unity.app'));
-      readVersionOSX(path.join(config.unitypath, unityFolders[i], 'Unity.app')).then(({version, path}) => {
-        unityVersion[version] = path;
-      }).catch((err) => {
-        if (err !== 'File does not exist') {
-          console.log(err);
-        }
-      });
-    } 
-  }
-  ejse.data('files', fse.readdirSync('.'));
-  mainWindow.loadURL('file://' + __dirname + '/index.ejs');
+  getUnityVersions().then((unityVersions) => {
+    console.log(unityVersions)
+    ejse.data('versions', unityVersions);
+    mainWindow.loadURL('file://' + __dirname + '/index.ejs');
+  });
+  
 
   // Open the DevTools.
   // mainWindow.webContents.openDevTools()
@@ -80,14 +70,39 @@ app.on('activate', function () {
 // code. You can also put them in separate files and require them here.
 
 
+function getUnityVersions() {
+  return new Promise((resolve, reject) => {
+    let unityVersion = new Object();
+    let unityFolders = fse.readdirSync(config.unitypath);
+    let promises = [];
+  
+    for (let i = 0; i < unityFolders.length; i++) {
+      if (process.platform == 'darwin') {
+        promises.push(
+          readVersionOSX(path.join(config.unitypath, unityFolders[i], 'Unity.app')).then(({version, path}) => {
+            unityVersion[version] = path;
+          }).catch((err) => {
+            if (err !== 'File does not exist') {
+              console.log(err);
+            }
+          })
+        );
+      } 
+    }
+    Promise.all(promises).then(() => {
+      resolve(unityVersion);
+    })
+  })
+}
+
 function readVersionOSX(path) {
   return new Promise((resolve, reject) => {
     const exec = require('child_process').exec;
     if (fse.existsSync(path)) {
       let child = exec('mdls "' + path + '"', (err, stdout, stderr) => {
-        if (!err) {          
-          let UnityVersion = processResult(stdout);
-          resolve({UnityVersion, path});
+        if (!err) {
+          let version = processResult(stdout);
+          resolve({version, path});
         } else {
           reject(err);
         }
