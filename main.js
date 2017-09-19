@@ -1,11 +1,14 @@
 const electron = require('electron');
-
+const ejse = require('ejs-electron')
 const app = electron.app;
 
 const BrowserWindow = electron.BrowserWindow;
 
-const path = require('path')
-const url = require('url')
+const path = require('path');
+const url = require('url');
+const fse = require('fs-extra');
+
+let config = require('./config.json');
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -13,17 +16,33 @@ let mainWindow
 
 function createWindow () {
   // Create the browser window.
-  mainWindow = new BrowserWindow({width: 800, height: 600})
-
-  // and load the index.html of the app.
-  mainWindow.loadURL(url.format({
-    pathname: path.join(__dirname, 'index.html'),
-    protocol: 'file:',
-    slashes: true
-  }))
+  mainWindow = new BrowserWindow({
+    width: 600,
+    height: 300,
+    'min-width': 500,
+    'min-height': 200,
+    'accept-first-mouse': true,
+    'title-bar-style': 'hidden'
+  });
+  let unityVersion;
+  let unityFolders = fse.readdirSync(config.unitypath);
+  for (let i = 0; i < unityFolders.length; i++) {
+    if (process.platform == 'darwin') {
+      console.log(path.join(config.unitypath, unityFolders[i], 'Unity.app'));
+      readVersionOSX(path.join(config.unitypath, unityFolders[i], 'Unity.app')).then(({version, path}) => {
+        unityVersion[version] = path;
+      }).catch((err) => {
+        if (err !== 'File does not exist') {
+          console.log(err);
+        }
+      });
+    } 
+  }
+  ejse.data('files', fse.readdirSync('.'));
+  mainWindow.loadURL('file://' + __dirname + '/index.ejs');
 
   // Open the DevTools.
-//   mainWindow.webContents.openDevTools()
+  // mainWindow.webContents.openDevTools()
 
   // Emitted when the window is closed.
   mainWindow.on('closed', function () {
@@ -32,6 +51,7 @@ function createWindow () {
     // when you should delete the corresponding element.
     mainWindow = null
   })
+
 }
 
 // This method will be called when Electron has finished
@@ -58,3 +78,41 @@ app.on('activate', function () {
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.
+
+
+function readVersionOSX(path) {
+  return new Promise((resolve, reject) => {
+    const exec = require('child_process').exec;
+    if (fse.existsSync(path)) {
+      let child = exec('mdls "' + path + '"', (err, stdout, stderr) => {
+        if (!err) {          
+          let UnityVersion = processResult(stdout);
+          resolve({UnityVersion, path});
+        } else {
+          reject(err);
+        }
+      });
+    } else {
+      reject('File does not exist');
+    }
+  }) 
+}
+
+function readVersionWin(path) {
+  
+}
+
+
+function processResult(stdout) {  
+  let lines = stdout.toString().split('\n');
+  let results = new Array();
+  for (let i = 0; i < lines.length; i++) {
+    let parts = lines[i].split('=');
+    if (parts[0].includes('kMDItemVersion')) {
+      let version = parts[1].replace(' "Unity version ', '')
+      version = version.replace('"', '');
+      return version;
+    }
+  }
+};
+
