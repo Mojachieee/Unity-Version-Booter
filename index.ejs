@@ -7,13 +7,27 @@
     <div class="window">
         <div class="window-content">
           <ul class="list-group"
-            <% files.forEach((file) => {%>
-              <li class="list-group-item">
-                  <%= file %>
+            <% Object.keys(versions).forEach((version) => {%>
+              <li class ="list-group-item">
+                  
+                  <button id="<%= version %>" class="btn btn-default">
+                      <%= version %>
+                  </button>
               </li>
             <% }); %>
           </ul>
         </div>
       </div>
+      <script>
+        var electron = require('electron');
+        var loadUnity = electron.remote.require('./main').loadUnity;
+
+        var btns = document.getElementsByClassName('btn-default');
+        for (let i = 0; i < btns.length; i++) {
+          btns[i].addEventListener('click', () => {
+            loadUnity(btns[i].id);
+          })
+        }
+      </script>
   </body>
 </html>

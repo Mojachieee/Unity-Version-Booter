@@ -13,6 +13,7 @@ let config = require('./config.json');
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow
+let unityVersions;
 
 function createWindow () {
   // Create the browser window.
@@ -24,8 +25,8 @@ function createWindow () {
     'accept-first-mouse': true,
     'title-bar-style': 'hidden'
   });
-  getUnityVersions().then((unityVersions) => {
-    console.log(unityVersions)
+  getUnityVersions().then((versions) => {
+    unityVersions = versions;
     ejse.data('versions', unityVersions);
     mainWindow.loadURL('file://' + __dirname + '/index.ejs');
   });
@@ -131,3 +132,20 @@ function processResult(stdout) {
   }
 };
 
+function loadUnity(id) {
+  const exec = require('child_process').exec;
+  if (fse.existsSync(unityVersions[id])) {
+    let child = exec('open "' + unityVersions[id] + '"', (err, stdout, stderr) => {
+      if (!err) {
+        let version = processResult(stdout);
+        
+      } else {
+        console.log(err);
+      }
+    });
+  } else {
+    console.log("oh no");
+  }
+}
+
+exports.loadUnity = loadUnity;
