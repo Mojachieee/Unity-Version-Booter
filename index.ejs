@@ -1,0 +1,19 @@
+<html lang="en">
+  <head>
+    <title>Unity Version Booter</title>
+    <link rel="stylesheet" href="./css/photon.min.css">
+  </head>
+  <body>
+    <div class="window">
+        <div class="window-content">
+          <ul class="list-group"
+            <% files.forEach((file) => {%>
+              <li class="list-group-item">
+                  <%= file %>
+              </li>
+            <% }); %>
+          </ul>
+        </div>
+      </div>
+  </body>
+</html>
