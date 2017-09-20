@@ -7,18 +7,18 @@
     <div class="window">
         <div class="window-content">
           <ul class="list-group">
+            <li class="list-group-header">
+              Unity Versions
+            </li>
             <% for (let i = 0; i < versions.ordered.length; i++) {%>
               <li class ="list-group-item">
-                  
-                  <button id="<%= versions.ordered[i] %>" class="btn btn-positive">
+                  <button id="<%= versions.ordered[i] %>" class="btn btn-positive media-body">
                       <%= versions.ordered[i] %>
                   </button>
                   <div class="btn-group">
                     <% if (versions.targets[versions.ordered[i]].targets != null) { %>
                       <% for (let j = 0; j < versions.targets[versions.ordered[i]].targets.length; j++) {%>
-                        <button>
-                          <img src="./icons/<%= versions.targets[versions.ordered[i]].targets[j] %>.png">
-                        </button>
+                        <img class="media-object pull-right" src="./icons/<%= versions.targets[versions.ordered[i]].targets[j] %>.png">
                       <% } %>
                     <% } %>
                   </div>
