@@ -6,15 +6,16 @@
   <body>
     <div class="window">
         <div class="window-content">
-          <ul class="list-group"
-            <% Object.keys(versions).forEach((version) => {%>
+          <ul class="list-group">
+          
+            <% for (let i = 0; i < versions.length; i++) {%>
               <li class ="list-group-item">
                   
-                  <button id="<%= version %>" class="btn btn-default">
-                      <%= version %>
+                  <button id="<%= versions[i] %>" class="btn btn-default">
+                      <%= versions[i] %>
                   </button>
               </li>
-            <% }); %>
+            <% } %>
           </ul>
         </div>
       </div>

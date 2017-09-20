@@ -27,7 +27,8 @@ function createWindow () {
   });
   getUnityVersions().then((versions) => {
     unityVersions = versions;
-    ejse.data('versions', unityVersions);
+    let orderedVersions = Object.keys(unityVersions).sort(sortVersion);
+    ejse.data('versions', orderedVersions);
     mainWindow.loadURL('file://' + __dirname + '/index.ejs');
   });
   
@@ -131,6 +132,35 @@ function processResult(stdout) {
     }
   }
 };
+
+function orderVersions(unityVersions) {
+  let keys = Object.keys(unityVersions);
+  
+  console.log(keys.sort(sortVersion));
+  // console.log("key 1: " + keys[0]);
+  // console.log("key 2: " + keys[3]);
+  // console.log(sortVersion(keys[0], keys[3]))
+}
+function sortVersion(a, b) { 
+  let aSplit = a.split('.');
+  let bSplit = b.split('.');
+  aSplit[0] = parseInt(aSplit[0]);
+  bSplit[0] = parseInt(bSplit[0]);
+  aSplit[1] = parseInt(aSplit[1]);
+  bSplit[1] = parseInt(bSplit[1]);
+  if (aSplit[0] > bSplit[0]) {
+    return -1;
+  } else if (aSplit[0] == bSplit[0]) {
+    if (aSplit[1] > bSplit[1]) {
+      return -1;
+    } else if (aSplit[1] == bSplit[1]) {
+      if (parseInt(aSplit[2].substring(0, 1)) > parseInt(bSplit[2].substring(0,1))) {
+        return -1;
+      }
+    }
+  }
+  return 1;
+}
 
 function loadUnity(id) {
   const exec = require('child_process').exec;
