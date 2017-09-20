@@ -28,7 +28,7 @@ function createWindow () {
   getUnityVersions().then((versions) => {
     unityVersions = versions;
     let orderedVersions = Object.keys(unityVersions).sort(sortVersion);
-    ejse.data('versions', orderedVersions);
+    ejse.data('versions', {ordered: orderedVersions, targets: unityVersions});
     mainWindow.loadURL('file://' + __dirname + '/index.ejs');
   });
   
@@ -79,10 +79,13 @@ function getUnityVersions() {
     let promises = [];
   
     for (let i = 0; i < unityFolders.length; i++) {
-      if (process.platform == 'darwin') {
+      if (process.platform == 'darwin' && unityFolders[i] != ".DS_Store") {
         promises.push(
-          readVersionOSX(path.join(config.unitypath, unityFolders[i], 'Unity.app')).then(({version, path}) => {
-            unityVersion[version] = path;
+          readVersionOSX(path.join(config.unitypath, unityFolders[i], 'Unity.app')).then(({version, filepath}) => {
+            unityVersion[version] = {
+              file: filepath,
+              targets: getPlaybackEngines(path.join(config.unitypath, unityFolders[i], "PlaybackEngines"))
+            };
           }).catch((err) => {
             if (err !== 'File does not exist') {
               console.log(err);
@@ -97,14 +100,14 @@ function getUnityVersions() {
   })
 }
 
-function readVersionOSX(path) {
+function readVersionOSX(filepath) {
   return new Promise((resolve, reject) => {
     const exec = require('child_process').exec;
-    if (fse.existsSync(path)) {
-      let child = exec('mdls "' + path + '"', (err, stdout, stderr) => {
+    if (fse.existsSync(filepath)) {
+      let child = exec('mdls "' + filepath + '"', (err, stdout, stderr) => {
         if (!err) {
           let version = processResult(stdout);
-          resolve({version, path});
+          resolve({version, filepath});
         } else {
           reject(err);
         }
@@ -115,7 +118,15 @@ function readVersionOSX(path) {
   }) 
 }
 
-function readVersionWin(path) {
+function getPlaybackEngines(filepath) {
+  if (fse.existsSync(filepath)) {
+    return fse.readdirSync(filepath);      
+  } else {
+    return null;
+  }
+}
+
+function readVersionWin(filepath) {
   
 }
 
@@ -133,14 +144,7 @@ function processResult(stdout) {
   }
 };
 
-function orderVersions(unityVersions) {
-  let keys = Object.keys(unityVersions);
-  
-  console.log(keys.sort(sortVersion));
-  // console.log("key 1: " + keys[0]);
-  // console.log("key 2: " + keys[3]);
-  // console.log(sortVersion(keys[0], keys[3]))
-}
+
 function sortVersion(a, b) { 
   let aSplit = a.split('.');
   let bSplit = b.split('.');
@@ -164,11 +168,9 @@ function sortVersion(a, b) {
 
 function loadUnity(id) {
   const exec = require('child_process').exec;
-  if (fse.existsSync(unityVersions[id])) {
-    let child = exec('open "' + unityVersions[id] + '"', (err, stdout, stderr) => {
+  if (fse.existsSync(unityVersions[id].file)) {
+    let child = exec('open "' + unityVersions[id].file + '"', (err, stdout, stderr) => {
       if (!err) {
-        let version = processResult(stdout);
-        
       } else {
         console.log(err);
       }

@@ -7,13 +7,21 @@
     <div class="window">
         <div class="window-content">
           <ul class="list-group">
-          
-            <% for (let i = 0; i < versions.length; i++) {%>
+            <% for (let i = 0; i < versions.ordered.length; i++) {%>
               <li class ="list-group-item">
                   
-                  <button id="<%= versions[i] %>" class="btn btn-default">
-                      <%= versions[i] %>
+                  <button id="<%= versions.ordered[i] %>" class="btn btn-positive">
+                      <%= versions.ordered[i] %>
                   </button>
+                  <div class="btn-group">
+                    <% if (versions.targets[versions.ordered[i]].targets != null) { %>
+                      <% for (let j = 0; j < versions.targets[versions.ordered[i]].targets.length; j++) {%>
+                        <button>
+                          <img src="./icons/<%= versions.targets[versions.ordered[i]].targets[j] %>.png">
+                        </button>
+                      <% } %>
+                    <% } %>
+                  </div>
               </li>
             <% } %>
           </ul>
