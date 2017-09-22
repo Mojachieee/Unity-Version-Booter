@@ -10,6 +10,17 @@ const fse = require('fs-extra');
 
 let config = require('./config.json');
 
+
+const targetMap = {
+  AndroidPlayer: 'android',
+  iOSSupport: 'ios',
+  WebGLSupport: 'web',
+  WindowsStandaloneSupport: 'win64',
+  MacStandaloneSupport: 'osx',
+  LinuxStandaloneSupport: 'linux64'
+
+}
+
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow
@@ -166,10 +177,13 @@ function sortVersion(a, b) {
   return 1;
 }
 
-function loadUnity(id) {
+function loadUnity(id, target) {
   const exec = require('child_process').exec;
   if (fse.existsSync(unityVersions[id].file)) {
-    let child = exec('open "' + unityVersions[id].file + '"', (err, stdout, stderr) => {
+    console.log(target)
+    console.log(targetMap[target]);
+    return;
+    let child = exec('"' + path.join(unityVersions[id].file, '/Contents/MacOS/Unity' + '" -BuildTarget ' + targetMap[target] + '&'), (err, stdout, stderr) => {
       if (!err) {
       } else {
         console.log(err);

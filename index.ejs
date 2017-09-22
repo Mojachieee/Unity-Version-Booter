@@ -7,18 +7,18 @@
     <div class="window">
         <div class="window-content">
           <ul class="list-group">
-            <li class="list-group-header">
-              Unity Versions
-            </li>
             <% for (let i = 0; i < versions.ordered.length; i++) {%>
               <li class ="list-group-item">
-                  <button id="<%= versions.ordered[i] %>" class="btn btn-positive media-body">
+                  
+                  <button id="<%= versions.ordered[i] %>" class="btn btn-positive">
                       <%= versions.ordered[i] %>
                   </button>
                   <div class="btn-group">
                     <% if (versions.targets[versions.ordered[i]].targets != null) { %>
                       <% for (let j = 0; j < versions.targets[versions.ordered[i]].targets.length; j++) {%>
-                        <img class="media-object pull-right" src="./icons/<%= versions.targets[versions.ordered[i]].targets[j] %>.png">
+                        <button class="btn-targets" id="<%= versions.ordered[i] %>" target="<%= versions.targets[versions.ordered[i]].targets[j] %>">
+                          <img src="./icons/<%= versions.targets[versions.ordered[i]].targets[j] %>.png">
+                        </button>
                       <% } %>
                     <% } %>
                   </div>
@@ -28,15 +28,23 @@
         </div>
       </div>
       <script>
-        var electron = require('electron');
-        var loadUnity = electron.remote.require('./main').loadUnity;
+        let electron = require('electron');
+        let loadUnity = electron.remote.require('./main').loadUnity;
 
-        var btns = document.getElementsByClassName('btn-default');
+        let btns = document.getElementsByClassName('btn-positive');
         for (let i = 0; i < btns.length; i++) {
           btns[i].addEventListener('click', () => {
-            loadUnity(btns[i].id);
+            loadUnity(btns[i].id, null);
           })
         }
+        btns = document.getElementsByClassName('btn-targets');
+        for (let i = 0; i < btns.length; i++) {
+          btns[i].addEventListener('click', () => {
+            loadUnity(btns[i].id, btns[i].getAttribute('target'));
+          })
+        }
+
+          
       </script>
   </body>
 </html>
