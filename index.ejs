@@ -27,7 +27,7 @@
             <% for (let i = 0; i < versions.ordered.length; i++) {%>
               <li class ="list-group-item">
                   
-                  <button id="<%= versions.ordered[i] %>" class="btn btn-positive">
+                  <button id="<%= versions.ordered[i] %>" class="btn btn-positive btn-version">
                       <%= versions.ordered[i] %>
                   </button>
                   <div class="btn-group">
@@ -48,7 +48,7 @@
         let electron = require('electron');
         let loadUnity = electron.remote.require('./main').loadUnity;
 
-        let btns = document.getElementsByClassName('btn-positive');
+        let btns = document.getElementsByClassName('btn-version');
         for (let i = 0; i < btns.length; i++) {
           btns[i].addEventListener('click', () => {
             loadUnity(btns[i].id, null);
