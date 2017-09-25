@@ -5,6 +5,23 @@
   </head>
   <body>
     <div class="window">
+        <header class="toolbar toolbar-header">
+            <div class="toolbar-actions">
+              <div class="btn-group">
+                <button class="btn btn-default">
+                    Unity Versions
+                  <!-- <span class="icon icon-home"></span> -->
+                </button>
+                <button class="btn btn-default" onclick="navProjects()">
+                    Projects
+                  <!-- <span class="icon icon-folder"></span> -->
+                </button>
+                <button class="btn btn-default">
+                  <span class="icon icon-cloud"></span>
+                </button>
+              </div>
+            </div>
+          </header>
         <div class="window-content">
           <ul class="list-group">
             <% for (let i = 0; i < versions.ordered.length; i++) {%>
@@ -44,6 +61,12 @@
           })
         }
 
+        function navProjects() {
+            console.log("nav called");
+            let electron = require('electron');
+            let navigateProjects = electron.remote.require('./main').navigateProjects;
+            navigateProjects();
+          }
           
       </script>
   </body>

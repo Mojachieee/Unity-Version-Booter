@@ -36,12 +36,15 @@ function createWindow () {
     'accept-first-mouse': true,
     'title-bar-style': 'hidden'
   });
-  getUnityVersions().then((versions) => {
-    unityVersions = versions;
-    let orderedVersions = Object.keys(unityVersions).sort(sortVersion);
-    ejse.data('versions', {ordered: orderedVersions, targets: unityVersions});
-    mainWindow.loadURL('file://' + __dirname + '/index.ejs');
-  });
+  mainWindow.loadURL('file://' + __dirname + '/projects.ejs');
+  // getUnityVersions().then((versions) => {
+  //   getProjects();
+
+  //   unityVersions = versions;
+  //   let orderedVersions = Object.keys(unityVersions).sort(sortVersion);
+  //   ejse.data('versions', {ordered: orderedVersions, targets: unityVersions});
+  //   mainWindow.loadURL('file://' + __dirname + '/index.ejs');
+  // });
   
 
   // Open the DevTools.
@@ -82,6 +85,25 @@ app.on('activate', function () {
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.
 
+
+function getProjects() {
+  let projects = new Array();
+  let projectFolders = fse.readdirSync(config.projectspath);
+
+  for (let i = 0; i < projectFolders.length; i++) {
+    if (fse.existsSync(path.join(config.projectspath, projectFolders[i], '/ProjectSettings/ProjectVersion.txt'))) {
+      let version = fse.readFileSync(path.join(config.projectspath, projectFolders[i], '/ProjectSettings/ProjectVersion.txt')).toString();
+      version = version.replace('m_EditorVersion: ', '');
+      version = version.replace('\n', '');
+      projects[projects.length + 1] = {
+        name: projectFolders[i],
+        path: path.join(config.projectspath + projectFolders[i]),
+        version: version
+      }
+    }
+  }
+  console.log(projects);
+}
 
 function getUnityVersions() {
   return new Promise((resolve, reject) => {
@@ -142,6 +164,7 @@ function readVersionWin(filepath) {
 }
 
 
+
 function processResult(stdout) {  
   let lines = stdout.toString().split('\n');
   let results = new Array();
@@ -180,9 +203,6 @@ function sortVersion(a, b) {
 function loadUnity(id, target) {
   const exec = require('child_process').exec;
   if (fse.existsSync(unityVersions[id].file)) {
-    console.log(target)
-    console.log(targetMap[target]);
-    return;
     let child = exec('"' + path.join(unityVersions[id].file, '/Contents/MacOS/Unity' + '" -BuildTarget ' + targetMap[target] + '&'), (err, stdout, stderr) => {
       if (!err) {
       } else {
@@ -194,4 +214,34 @@ function loadUnity(id, target) {
   }
 }
 
-exports.loadUnity = loadUnity;
+function loadProject(id, target) {
+
+}
+
+function navigateVersions() {
+  if (unityVersions == null) {
+    getUnityVersions().then((versions) => {
+      unityVersions = versions;
+      let orderedVersions = Object.keys(unityVersions).sort(sortVersion);
+      ejse.data('versions', {ordered: orderedVersions, targets: unityVersions});
+      mainWindow.loadURL('file://' + __dirname + '/index.ejs');
+    });
+  } else {
+    let orderedVersions = Object.keys(unityVersions).sort(sortVersion);
+    ejse.data('versions', {ordered: orderedVersions, targets: unityVersions});
+    mainWindow.loadURL('file://' + __dirname + '/index.ejs');
+  }
+  //   getProjects();
+
+    
+}
+
+function navigateProjects() {
+  mainWindow.loadURL('file://' + __dirname + '/projects.ejs');
+}
+
+module.exports = {
+  navigateProjects,
+  navigateVersions,
+  loadUnity
+}

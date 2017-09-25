@@ -1,0 +1,38 @@
+<html lang="en">
+    <head>
+      <title>Unity Version Booter</title>
+      <link rel="stylesheet" href="./css/photon.min.css">
+    </head>
+    <body>
+        <div class="window">
+                <header class="toolbar toolbar-header">
+                        <div class="toolbar-actions">
+                          <div class="btn-group">
+                            <button class="btn btn-default" onclick="navVersions()">
+                                Unity Versions
+                              <!-- <span class="icon icon-home"></span> -->
+                            </button>
+                            <button class="btn btn-default">
+                                Projects
+                              <!-- <span class="icon icon-folder"></span> -->
+                            </button>
+                            <button class="btn btn-default">
+                              <span class="icon icon-cloud"></span>
+                            </button>
+                          </div>
+                        </div>
+                      </header>
+            <div class="window-content">
+                
+            </div>
+        </div>
+        <script>
+          function navVersions() {
+            console.log("nav called");
+            let electron = require('electron');
+            let navigateVersions = electron.remote.require('./main').navigateVersions;
+            navigateVersions();
+          }
+        </script>
+    </body>
+</html>
