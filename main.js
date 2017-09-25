@@ -25,37 +25,43 @@ const targetMap = {
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow
 let unityVersions;
+let projects;
 
 function createWindow () {
-  // Create the browser window.
-  mainWindow = new BrowserWindow({
-    width: 600,
-    height: 600,
-    'min-width': 500,
-    'min-height': 200,
-    'accept-first-mouse': true,
-    'title-bar-style': 'hidden'
-  });
-  mainWindow.loadURL('file://' + __dirname + '/projects.ejs');
-  // getUnityVersions().then((versions) => {
-  //   getProjects();
+  getUnityVersions().then((versions) => {
+    unityVersions = versions;
+    // Create the browser window.
+    mainWindow = new BrowserWindow({
+      width: 600,
+      height: 600,
+      'min-width': 500,
+      'min-height': 200,
+      'accept-first-mouse': true,
+      'title-bar-style': 'hidden'
+    });
 
-  //   unityVersions = versions;
-  //   let orderedVersions = Object.keys(unityVersions).sort(sortVersion);
-  //   ejse.data('versions', {ordered: orderedVersions, targets: unityVersions});
-  //   mainWindow.loadURL('file://' + __dirname + '/index.ejs');
-  // });
-  
+    navigateProjects();
+    // mainWindow.loadURL('file://' + __dirname + '/projects.ejs');
+    // getUnityVersions().then((versions) => {
+    //   getProjects();
 
-  // Open the DevTools.
-  // mainWindow.webContents.openDevTools()
+    //   unityVersions = versions;
+    //   let orderedVersions = Object.keys(unityVersions).sort(sortVersion);
+    //   ejse.data('versions', {ordered: orderedVersions, targets: unityVersions});
+    //   mainWindow.loadURL('file://' + __dirname + '/index.ejs');
+    // });
+    
 
-  // Emitted when the window is closed.
-  mainWindow.on('closed', function () {
-    // Dereference the window object, usually you would store windows
-    // in an array if your app supports multi windows, this is the time
-    // when you should delete the corresponding element.
-    mainWindow = null
+    // Open the DevTools.
+    mainWindow.webContents.openDevTools()
+
+    // Emitted when the window is closed.
+    mainWindow.on('closed', function () {
+      // Dereference the window object, usually you would store windows
+      // in an array if your app supports multi windows, this is the time
+      // when you should delete the corresponding element.
+      mainWindow = null
+    })
   })
 
 }
@@ -95,14 +101,14 @@ function getProjects() {
       let version = fse.readFileSync(path.join(config.projectspath, projectFolders[i], '/ProjectSettings/ProjectVersion.txt')).toString();
       version = version.replace('m_EditorVersion: ', '');
       version = version.replace('\n', '');
-      projects[projects.length + 1] = {
+      projects[projects.length] = {
         name: projectFolders[i],
         path: path.join(config.projectspath + projectFolders[i]),
         version: version
       }
     }
   }
-  console.log(projects);
+  return projects;
 }
 
 function getUnityVersions() {
@@ -202,16 +208,21 @@ function sortVersion(a, b) {
 
 function loadUnity(id, target) {
   const exec = require('child_process').exec;
-  if (fse.existsSync(unityVersions[id].file)) {
-    let child = exec('"' + path.join(unityVersions[id].file, '/Contents/MacOS/Unity' + '" -BuildTarget ' + targetMap[target] + '&'), (err, stdout, stderr) => {
-      if (!err) {
-      } else {
-        console.log(err);
-      }
-    });
-  } else {
-    console.log("oh no");
+  if (unityVersions[id] != null) {
+    if (fse.existsSync(unityVersions[id].file)) {
+      let child = exec('"' + path.join(unityVersions[id].file, '/Contents/MacOS/Unity' + '" -BuildTarget ' + targetMap[target] + '&'), (err, stdout, stderr) => {
+        if (!err) {
+        } else {
+          console.log(err);
+        }
+      });
+      return true;
+    } else {
+      console.log("oh no");
+      return false;
+    }
   }
+  return false;
 }
 
 function loadProject(id, target) {
@@ -219,24 +230,14 @@ function loadProject(id, target) {
 }
 
 function navigateVersions() {
-  if (unityVersions == null) {
-    getUnityVersions().then((versions) => {
-      unityVersions = versions;
-      let orderedVersions = Object.keys(unityVersions).sort(sortVersion);
-      ejse.data('versions', {ordered: orderedVersions, targets: unityVersions});
-      mainWindow.loadURL('file://' + __dirname + '/index.ejs');
-    });
-  } else {
     let orderedVersions = Object.keys(unityVersions).sort(sortVersion);
     ejse.data('versions', {ordered: orderedVersions, targets: unityVersions});
     mainWindow.loadURL('file://' + __dirname + '/index.ejs');
-  }
-  //   getProjects();
-
-    
 }
 
 function navigateProjects() {
+  projects = getProjects();
+  ejse.data('projects', projects);
   mainWindow.loadURL('file://' + __dirname + '/projects.ejs');
 }
 
