@@ -26,11 +26,11 @@
             <div class="window-content">
                 <div id="errorModal" class="modal">
                       <!-- Modal content -->
-                      <div class="modal-content">
-                        <span class="close">&times;</span>
-                        <strong>An error has occured when loading Unity</strong>
-                      </div>
-                    </div>
+                  <div class="modal-content">
+                    <span class="close">&times;</span>
+                    <strong>An error has occured when loading Unity</strong>
+                  </div>
+                </div>
                 <ul class="list-group">
                     <li class="list-group-header">
                       <input class="form-control" type="text" placeholder="Search for a project">
@@ -40,7 +40,7 @@
                         <div class="media-body">
                           <strong><%= projects[i].name %></strong>
                           <p><%= projects[i].version %>
-                           <button id="<%= projects[i].version %>" class="btn btn-default btn-project pull-right">
+                           <button id="<%= projects[i].version %>" path="<%= projects[i].path %>" class="btn btn-default btn-project pull-right">
                             <span class="icon icon-play"></span>
                           </button>
                         </p>
@@ -57,21 +57,20 @@
           let btns = document.getElementsByClassName('btn-project');
           for (let i = 0; i < btns.length; i++) {
             btns[i].addEventListener('click', () => {
-              if (!loadUnity(btns[i].id, null)) {
-                let modal = document.getElementById("errorModal");
+              if (!loadUnity(btns[i].id, null, btns[i].getAttribute('path'))) {
+                let modal = document.getElementById('errorModal');
                 modal.style.display = "block";
               }
             })
           }
 
-          let modal = document.getElementById("errorModal");
-          let span = document.getElementsByClassName("close")[0];
+          let modal = document.getElementById('errorModal');
+          let span = document.getElementsByClassName('close')[0];
           span.onclick = () => {
-            modal.style.display = "none";
+            modal.style.display = 'none';
           }
 
           function navVersions() {
-            console.log("nav called");
             let electron = require('electron');
             let navigateVersions = electron.remote.require('./main').navigateVersions;
             navigateVersions();

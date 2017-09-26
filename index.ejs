@@ -58,7 +58,10 @@
         let btns = document.getElementsByClassName('btn-version');
         for (let i = 0; i < btns.length; i++) {
           btns[i].addEventListener('click', () => {
-            loadUnity(btns[i].id, null);
+            if (!loadUnity(btns[i].id, null, null)) {
+                let modal = document.getElementById('errorModal');
+                modal.style.display = "block";
+              }
           })
         }
         btns = document.getElementsByClassName('btn-targets');
