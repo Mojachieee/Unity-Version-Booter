@@ -32,20 +32,26 @@
             </div>
           </div>
           <ul class="list-group">
+            <li class="list-group-header">
+              <input class="form-control" type="text" placeholder="Search for a project">
+            </li>
             <% for (let i = 0; i < versions.ordered.length; i++) {%>
-              <li class ="list-group-item">
-                  <button id="<%= versions.ordered[i] %>" class="btn btn-positive btn-version">
-                      <%= versions.ordered[i] %>
+              <li class ="list-group-item" onclick="setActive(this)">
+                <div class="media-body">
+                  <strong><%=versions.ordered[i]%></strong>
+                  <button id="<%= versions.ordered[i] %>" class="btn btn-default btn-version pull-right">
+                      <span class="icon icon-play"></span>
                   </button>
-                  <div class="btn-group">
-                    <% if (versions.targets[versions.ordered[i]].targets != null) { %>
-                      <% for (let j = 0; j < versions.targets[versions.ordered[i]].targets.length; j++) {%>
-                        <button class="btn-targets" id="<%= versions.ordered[i] %>" target="<%= versions.targets[versions.ordered[i]].targets[j] %>">
-                          <img src="./icons/<%= versions.targets[versions.ordered[i]].targets[j] %>.png">
-                        </button>
-                      <% } %>
+                  <% if (versions.targets[versions.ordered[i]].targets != null) { %>
+                    <p>
+                    <% for (let j = 0; j < versions.targets[versions.ordered[i]].targets.length; j++) {%>
+                      <button class="btn btn-default btn-targets" id="<%= versions.ordered[i] %>" target="<%= versions.targets[versions.ordered[i]].targets[j] %>">
+                        <img src="./icons/<%= versions.targets[versions.ordered[i]].targets[j] %>.png">
+                      </button>
                     <% } %>
-                  </div>
+                    </p>
+                  <% } %>
+                </div>
               </li>
             <% } %>
           </ul>
@@ -59,21 +65,24 @@
         for (let i = 0; i < btns.length; i++) {
           btns[i].addEventListener('click', () => {
             if (!loadUnity(btns[i].id, null, null)) {
-                let modal = document.getElementById('errorModal');
-                modal.style.display = "block";
-              }
-          })
+              let modal = document.getElementById('errorModal');
+              modal.style.display = "block";
+            }
+          });
         }
-        btns = document.getElementsByClassName('btn-targets');
+        let btnsTarget = document.getElementsByClassName('btn-targets');
         for (let i = 0; i < btns.length; i++) {
-          btns[i].addEventListener('click', () => {
-            loadUnity(btns[i].id, btns[i].getAttribute('target'));
-          })
+          btnsTarget[i].addEventListener('click', () => {
+            if (!loadUnity(btnsTarget[i].id, btnsTarget[i].getAttribute('target'), null)) {
+              let modal = document.getElementById('errorModal');
+              modal.style.display = "block";
+            }
+          });
         }
 
         let modal = document.getElementById("errorModal");
-          let span = document.getElementsByClassName("close")[0];
-          span.onclick = () => {
+        let span = document.getElementsByClassName("close")[0];
+        span.onclick = () => {
             modal.style.display = "none";
         }
 
@@ -84,6 +93,13 @@
             navigateProjects();
           }
           
+          function setActive(e) {
+            let li = document.getElementsByClassName('active')[0];
+            if (li) {
+              li.classList.remove('active');
+            }
+            e.classList.add('active');
+          }
       </script>
   </body>
 </html>

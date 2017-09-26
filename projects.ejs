@@ -36,14 +36,14 @@
                       <input class="form-control" type="text" placeholder="Search for a project">
                     </li>
                     <% for (let i = 0; i < projects.length; i++) { %>
-                      <li class="list-group-item">
+                      <li class="list-group-item" onclick="setActive(this)">
                         <div class="media-body">
                           <strong><%= projects[i].name %></strong>
                           <p><%= projects[i].version %>
-                           <button id="<%= projects[i].version %>" path="<%= projects[i].path %>" class="btn btn-default btn-project pull-right">
-                            <span class="icon icon-play"></span>
-                          </button>
-                        </p>
+                            <button id="<%= projects[i].version %>" path="<%= projects[i].path %>" class="btn btn-default btn-project pull-right">
+                              <span class="icon icon-play"></span>
+                            </button>
+                          </p>
                         </div>
                       </li>
                       <% } %>
@@ -74,6 +74,14 @@
             let electron = require('electron');
             let navigateVersions = electron.remote.require('./main').navigateVersions;
             navigateVersions();
+          }
+
+          function setActive(e) {
+            let li = document.getElementsByClassName('active')[0];
+            if (li) {
+              li.classList.remove('active');
+            }
+            e.classList.add('active');
           }
         </script>
     </body>
