@@ -17,8 +17,7 @@ const targetMap = {
   WebGLSupport: 'web',
   WindowsStandaloneSupport: 'win64',
   MacStandaloneSupport: 'osx',
-  LinuxStandaloneSupport: 'linux64'
-
+  LinuxStandaloneSupport: 'linux64',
 }
 
 // Keep a global reference of the window object, if you don't, the window will
@@ -53,7 +52,7 @@ function createWindow () {
     
 
     // Open the DevTools.
-    mainWindow.webContents.openDevTools()
+    // mainWindow.webContents.openDevTools()
 
     // Emitted when the window is closed.
     mainWindow.on('closed', function () {
@@ -103,7 +102,7 @@ function getProjects() {
       version = version.replace('\n', '');
       projects[projects.length] = {
         name: projectFolders[i],
-        path: path.join(config.projectspath + projectFolders[i]),
+        path: path.join(config.projectspath, projectFolders[i]),
         version: version
       }
     }
@@ -206,12 +205,21 @@ function sortVersion(a, b) {
   return 1;
 }
 
-function loadUnity(id, target) {
+function loadUnity(id, target, filepath) {
   const exec = require('child_process').exec;
   if (unityVersions[id] != null) {
     if (fse.existsSync(unityVersions[id].file)) {
-      let child = exec('"' + path.join(unityVersions[id].file, '/Contents/MacOS/Unity' + '" -BuildTarget ' + targetMap[target] + '&'), (err, stdout, stderr) => {
+      let command = '"' + path.join(unityVersions[id].file, '/Contents/MacOS/Unity') + '"';
+      if (targetMap[target]) {
+        command += ' -BuildTarget ' + targetMap[target];
+      }
+      if (filepath) {
+        command += ' -projectPath "' + filepath + '"';
+      }
+      command += ' &';
+      let child = exec(command, (err, stdout, stderr) => {
         if (!err) {
+          console.log(stdout);
         } else {
           console.log(err);
         }
