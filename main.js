@@ -10,14 +10,22 @@ const fse = require('fs-extra');
 
 let config = require('./config.json');
 
+const targetString = {
+  AndroidPlayer: 'Android',
+  iOSSupport: 'iOS',
+  WebGLSupport: 'WebGl',
+  WindowsStandaloneSupport: 'Windows',
+  MacStandaloneSupport: 'OSX',
+  LinuxStandaloneSupport: 'Linux',
+}
 
 const targetMap = {
-  AndroidPlayer: 'android',
-  iOSSupport: 'ios',
-  WebGLSupport: 'web',
-  WindowsStandaloneSupport: 'win64',
-  MacStandaloneSupport: 'osx',
-  LinuxStandaloneSupport: 'linux64',
+  Android: 'android',
+  iOS: 'ios',
+  WebGL: 'web',
+  Windows: 'win64',
+  OSX: 'osx',
+  Linux: 'linux64',
 }
 
 // Keep a global reference of the window object, if you don't, the window will
@@ -27,41 +35,37 @@ let unityVersions;
 let projects;
 
 function createWindow () {
-  getUnityVersions().then((versions) => {
-    unityVersions = versions;
-    // Create the browser window.
-    mainWindow = new BrowserWindow({
-      width: 600,
-      height: 600,
-      'min-width': 500,
-      'min-height': 200,
-      'accept-first-mouse': true,
-      'title-bar-style': 'hidden'
+  mainWindow = new BrowserWindow({
+    width: 600,
+    height: 600,
+    'min-width': 500,
+    'min-height': 200,
+    'accept-first-mouse': true,
+    'title-bar-style': 'hidden'
+  });
+  // Emitted when the window is closed.
+  mainWindow.on('closed', function () {
+    // Dereference the window object, usually you would store windows
+    // in an array if your app supports multi windows, this is the time
+    // when you should delete the corresponding element.
+    mainWindow = null
+  })
+
+  if (!config || !config.unitypath || !config.projectspath) {
+    // projects = getProjects();
+    // ejse.data('data', {projects, config});
+    mainWindow.loadURL('file://' + __dirname + '/initial.ejs');
+    // console.log(mainWindow.webContents)
+  } else {
+    getUnityVersions().then((versions) => {
+      unityVersions = versions;
+      navigateProjects();
     });
-
-    navigateProjects();
-    // mainWindow.loadURL('file://' + __dirname + '/projects.ejs');
-    // getUnityVersions().then((versions) => {
-    //   getProjects();
-
-    //   unityVersions = versions;
-    //   let orderedVersions = Object.keys(unityVersions).sort(sortVersion);
-    //   ejse.data('versions', {ordered: orderedVersions, targets: unityVersions});
-    //   mainWindow.loadURL('file://' + __dirname + '/index.ejs');
-    // });
-    
+  }
+  
 
     // Open the DevTools.
     // mainWindow.webContents.openDevTools()
-
-    // Emitted when the window is closed.
-    mainWindow.on('closed', function () {
-      // Dereference the window object, usually you would store windows
-      // in an array if your app supports multi windows, this is the time
-      // when you should delete the corresponding element.
-      mainWindow = null
-    })
-  })
 
 }
 
@@ -157,11 +161,23 @@ function readVersionOSX(filepath) {
 }
 
 function getPlaybackEngines(filepath) {
+  let playbackEngines = new Array();
   if (fse.existsSync(filepath)) {
-    return fse.readdirSync(filepath);      
-  } else {
-    return null;
+    playbackEngines = fse.readdirSync(filepath);
   }
+  let osTarget;
+  if (process.platform == 'darwin') {
+    osTarget = 'MacStandaloneSupport';
+  } else if (process.platform == 'win32') {
+    osTarget = 'WindowsStandaloneSupport';
+  } else if (process.platform == 'linux') {
+    osTarget = 'LinuxStandaloneSupport';
+  }
+  playbackEngines.push(osTarget);
+  for (let i = 0; i < playbackEngines.length; i++) {
+    playbackEngines[i] = targetString[playbackEngines[i]];
+  }
+  return playbackEngines;
 }
 
 function readVersionWin(filepath) {
@@ -206,6 +222,7 @@ function sortVersion(a, b) {
 }
 
 function loadUnity(id, target, filepath) {
+  console.log('loading');
   const exec = require('child_process').exec;
   if (unityVersions[id] != null) {
     if (fse.existsSync(unityVersions[id].file)) {
@@ -233,24 +250,51 @@ function loadUnity(id, target, filepath) {
   return false;
 }
 
-function loadProject(id, target) {
-
+function changeSettings(setting, nav) {
+  electron.dialog.showOpenDialog(mainWindow,{
+    defaultPath: '~',
+    properties: ['openDirectory']
+  }, (filePaths) => {
+    if (filePaths) {
+      if (setting == 'versionSettings') {
+        config.unitypath = filePaths[0];
+      } else {
+        config.projectspath = filePaths[0];
+      }
+  
+      mainWindow.webContents.send('path', config);
+      fse.writeFile('./config.json', JSON.stringify(config));
+      if (setting == 'versionSettings') {
+        getUnityVersions().then((versions) => {
+          unityVersions = versions;
+          if (nav) {
+            navigateVersions();
+          }
+        });
+      } else {
+        if (nav) {
+          navigateProjects();
+        }
+      }
+    }
+  });
 }
 
 function navigateVersions() {
     let orderedVersions = Object.keys(unityVersions).sort(sortVersion);
-    ejse.data('versions', {ordered: orderedVersions, targets: unityVersions});
+    ejse.data('versions', {ordered: orderedVersions, targets: unityVersions, config});
     mainWindow.loadURL('file://' + __dirname + '/index.ejs');
 }
 
 function navigateProjects() {
   projects = getProjects();
-  ejse.data('projects', projects);
+  ejse.data('data', {projects, config});
   mainWindow.loadURL('file://' + __dirname + '/projects.ejs');
 }
 
 module.exports = {
   navigateProjects,
   navigateVersions,
-  loadUnity
+  loadUnity,
+  changeSettings
 }

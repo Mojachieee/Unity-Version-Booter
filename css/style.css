@@ -21,12 +21,8 @@
     width: 80%; /* Could be more or less, depending on screen size */
 }
 
-/* The Close Button */
-.close {
-    color: #aaa;
-    float: right;
-    font-size: 28px;
-    font-weight: bold;
+.icon-large {
+    font-size: 15px;
 }
 
 .close:hover,
@@ -34,4 +30,15 @@
     color: black;
     text-decoration: none;
     cursor: pointer;
+}
+
+.btn-targets {
+  margin: 6px 0px 3px 1px;
+}
+
+.center {
+    margin: auto;
+    width: 50%;
+    border: 3px solid #888;
+    padding: 10px;
 }

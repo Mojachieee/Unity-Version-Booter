@@ -1,0 +1,47 @@
+<html lang="en">
+        <head>
+          <title>Unity Version Booter</title>
+          <link rel="stylesheet" href="./css/photon.min.css">
+          <link rel="stylesheet" href="./css/style.css">
+        </head>
+        <body>
+            <div class="window">
+                <div class="window-content">
+                    <div class="center">
+                            <strong> Select the path to your unity versions and projects </strong>
+                        <div id="versionSettings" class="form-group" onclick="changeSettings(this)">
+                            <span>Unity Path:</span>
+                            <input id="txtVersion" type="text" class="form-control" value="" disabled>
+                        </div>
+                        <div id="projectSettings" class="form-group" onclick="changeSettings(this)">
+                            <span>Projects Path:</span>
+                            <input id="txtProject" type="text" class="form-control" value="" disabled>
+                        </div>
+                        <button onclick="loadMain()" class="btn btn-default btn-project pull-right">
+                            Done
+                        </button>
+                    </div>
+                </div>
+                <script>
+                    let electron = require('electron');
+                    function changeSettings(e) {
+                        console.log("aaaaa");
+                        let changeSettings = electron.remote.require('./main').changeSettings;
+                        changeSettings(e.id, false);
+                    }
+
+                    function loadMain() {
+                        let navigateVersions = electron.remote.require('./main').navigateVersions;
+                        navigateVersions();
+                    }
+                    electron.ipcRenderer.on('path' , (event, {unitypath, projectspath}) => {
+                        if (unitypath) {
+                            document.getElementById('txtVersion').setAttribute('value', unitypath);
+                        }
+                        if (projectspath) {
+                            document.getElementById('txtProject').setAttribute('value', projectspath);
+                        }
+                    });
+                </script>
+        </body>
+</html>

@@ -5,50 +5,69 @@
       <link rel="stylesheet" href="./css/style.css">
     </head>
     <body>
-        <div class="window">
-                <header class="toolbar toolbar-header">
-                        <div class="toolbar-actions">
-                          <div class="btn-group">
-                            <button class="btn btn-default" onclick="navVersions()">
-                                Unity Versions
-                              <!-- <span class="icon icon-home"></span> -->
-                            </button>
-                            <button class="btn btn-default">
-                                Projects
-                              <!-- <span class="icon icon-folder"></span> -->
-                            </button>
-                            <button class="btn btn-default">
-                              <span class="icon icon-cloud"></span>
-                            </button>
-                          </div>
-                        </div>
-                      </header>
-            <div class="window-content">
-                <div id="errorModal" class="modal">
-                      <!-- Modal content -->
-                  <div class="modal-content">
-                    <span class="close">&times;</span>
-                    <strong>An error has occured when loading Unity</strong>
+      <div class="window">
+        <header class="toolbar toolbar-header">
+          <div class="toolbar-actions">
+            <div class="btn-group">
+              <button class="btn btn-default" onclick="navVersions()">
+                  Unity Versions
+              </button>
+              <button class="btn btn-default">
+                  Projects
+              </button>
+              <button class="btn btn-default">
+                <span class="icon icon-cloud"></span>
+              </button>
+            </div>
+            <button class="btn btn-default pull-right" onclick="loadSettings()">
+              <span class="icon icon-cog"></span>
+            </button>
+          </div>
+        </header>
+          <div class="window-content">
+            <div id="settingsModal" class="modal">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <strong>Select config path</strong>
+                  <span class="close icon icon-cancel icon-large pull-right"></span>
+                </div>
+                <div class="modal-body">
+                  <div id="versionSettings" class="form-group" onclick="changeSettings(this)">
+                    <span>Unity Path:</span>
+                    <input type="text" class="form-control" value="<%= data.config.unitypath %>" disabled>
+                  </div>
+                  <div id="projectSettings" class="form-group" onclick="changeSettings(this)">
+                    <span>Projects Path:</span>
+                    <input type="text" class="form-control" value="<%= data.config.projectspath %>" disabled>
                   </div>
                 </div>
-                <ul class="list-group">
-                    <li class="list-group-header">
-                      <input class="form-control" type="text" placeholder="Search for a project">
-                    </li>
-                    <% for (let i = 0; i < projects.length; i++) { %>
-                      <li class="list-group-item" onclick="setActive(this)">
-                        <div class="media-body">
-                          <strong><%= projects[i].name %></strong>
-                          <p><%= projects[i].version %>
-                            <button id="<%= projects[i].version %>" path="<%= projects[i].path %>" class="btn btn-default btn-project pull-right">
-                              <span class="icon icon-play"></span>
-                            </button>
-                          </p>
-                        </div>
-                      </li>
-                      <% } %>
-                  </ul>
+              </div>
             </div>
+            <div id="errorModal" class="modal">
+                <!-- Modal content -->
+              <div class="modal-content">
+                <span class="close icon icon-cancel icon-large pull-right"></span>
+                <strong>An error has occured when loading Unity</strong>
+              </div>
+            </div>
+            <ul class="list-group">
+              <li class="list-group-header">
+                <input class="form-control" type="text" placeholder="Search for a project">
+              </li>
+              <% for (let i = 0; i < data.projects.length; i++) { %>
+                <li class="list-group-item" onclick="setActive(this)">
+                  <div class="media-body">
+                    <strong><%= data.projects[i].name %></strong>
+                    <p><%= data.projects[i].version %>
+                      <button id="<%= data.projects[i].version %>" path="<%= data.projects[i].path %>" class="btn btn-default btn-project pull-right">
+                        <span class="icon icon-play"></span>
+                      </button>
+                    </p>
+                  </div>
+                </li>
+              <% } %>
+            </ul>
+          </div>
         </div>
         <script>
           let electron = require('electron');
@@ -65,9 +84,23 @@
           }
 
           let modal = document.getElementById('errorModal');
-          let span = document.getElementsByClassName('close')[0];
+          let span = document.getElementsByClassName('close')[1];
           span.onclick = () => {
             modal.style.display = 'none';
+          }
+
+          function loadSettings() {
+            let modal = document.getElementById("settingsModal");
+            modal.style.display= "block";
+            span = document.getElementsByClassName("close")[0];
+            span.onclick = () => {
+              modal.style.display = "none";
+            }
+          }
+
+          function changeSettings(e) {
+            let changeSettings = electron.remote.require('./main').changeSettings;
+            changeSettings(e.id, true);
           }
 
           function navVersions() {
