@@ -4,6 +4,7 @@
   "description": "A version booter for Unity",
   "main": "main.js",
   "dependencies": {
+    "ejs-electron": "^2.0.1",
     "electron": "^1.7.6",
     "fs-extra": "^4.0.2"
   },
