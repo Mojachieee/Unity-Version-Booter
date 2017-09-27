@@ -31,7 +31,7 @@ const targetMap = {
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow
-let unityVersions;
+let unityVersions = [];
 let projects;
 
 function createWindow () {
@@ -59,6 +59,9 @@ function createWindow () {
   } else {
     getUnityVersions().then((versions) => {
       unityVersions = versions;
+      navigateProjects();
+    }).catch(() => {
+      console.log('Could not get unity versions')
       navigateProjects();
     });
   }
@@ -97,48 +100,54 @@ app.on('activate', function () {
 
 function getProjects() {
   let projects = new Array();
-  let projectFolders = fse.readdirSync(config.projectspath);
-
-  for (let i = 0; i < projectFolders.length; i++) {
-    if (fse.existsSync(path.join(config.projectspath, projectFolders[i], '/ProjectSettings/ProjectVersion.txt'))) {
-      let version = fse.readFileSync(path.join(config.projectspath, projectFolders[i], '/ProjectSettings/ProjectVersion.txt')).toString();
-      version = version.replace('m_EditorVersion: ', '');
-      version = version.replace('\n', '');
-      projects[projects.length] = {
-        name: projectFolders[i],
-        path: path.join(config.projectspath, projectFolders[i]),
-        version: version
+  if (fse.existsSync(config.projectspath)) {
+    let projectFolders = fse.readdirSync(config.projectspath);
+    
+      for (let i = 0; i < projectFolders.length; i++) {
+        if (fse.existsSync(path.join(config.projectspath, projectFolders[i], '/ProjectSettings/ProjectVersion.txt'))) {
+          let version = fse.readFileSync(path.join(config.projectspath, projectFolders[i], '/ProjectSettings/ProjectVersion.txt')).toString();
+          version = version.replace('m_EditorVersion: ', '');
+          version = version.replace('\n', '');
+          projects[projects.length] = {
+            name: projectFolders[i],
+            path: path.join(config.projectspath, projectFolders[i]),
+            version: version
+          }
+        }
       }
-    }
   }
   return projects;
 }
 
 function getUnityVersions() {
   return new Promise((resolve, reject) => {
-    let unityVersion = new Object();
-    let unityFolders = fse.readdirSync(config.unitypath);
-    let promises = [];
-  
-    for (let i = 0; i < unityFolders.length; i++) {
-      if (process.platform == 'darwin' && unityFolders[i] != ".DS_Store") {
-        promises.push(
-          readVersionOSX(path.join(config.unitypath, unityFolders[i], 'Unity.app')).then(({version, filepath}) => {
-            unityVersion[version] = {
-              file: filepath,
-              targets: getPlaybackEngines(path.join(config.unitypath, unityFolders[i], "PlaybackEngines"))
-            };
-          }).catch((err) => {
-            if (err !== 'File does not exist') {
-              console.log(err);
-            }
-          })
-        );
-      } 
+    if (fse.existsSync(config.unitypath)) {
+      let unityVersion = new Object();
+      let unityFolders = fse.readdirSync(config.unitypath);
+      let promises = [];
+    
+      for (let i = 0; i < unityFolders.length; i++) {
+        if (process.platform == 'darwin' && unityFolders[i] != ".DS_Store") {
+          promises.push(
+            readVersionOSX(path.join(config.unitypath, unityFolders[i], 'Unity.app')).then(({version, filepath}) => {
+              unityVersion[version] = {
+                file: filepath,
+                targets: getPlaybackEngines(path.join(config.unitypath, unityFolders[i], "PlaybackEngines"))
+              };
+            }).catch((err) => {
+              if (err !== 'File does not exist') {
+                console.log(err);
+              }
+            })
+          );
+        } 
+      }
+      Promise.all(promises).then(() => {
+        resolve(unityVersion);
+      })
+    } else {
+      reject();
     }
-    Promise.all(promises).then(() => {
-      resolve(unityVersion);
-    })
   })
 }
 
@@ -270,6 +279,8 @@ function changeSettings(setting, nav) {
           if (nav) {
             navigateVersions();
           }
+        }).catch(() => {
+          console.log('Could not get unity versions')
         });
       } else {
         if (nav) {
@@ -281,9 +292,9 @@ function changeSettings(setting, nav) {
 }
 
 function navigateVersions() {
-    let orderedVersions = Object.keys(unityVersions).sort(sortVersion);
-    ejse.data('versions', {ordered: orderedVersions, targets: unityVersions, config});
-    mainWindow.loadURL('file://' + __dirname + '/index.ejs');
+  let orderedVersions = Object.keys(unityVersions).sort(sortVersion);
+  ejse.data('versions', {ordered: orderedVersions, targets: unityVersions, config});
+  mainWindow.loadURL('file://' + __dirname + '/index.ejs');
 }
 
 function navigateProjects() {
