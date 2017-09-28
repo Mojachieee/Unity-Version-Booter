@@ -15,8 +15,11 @@ const targetString = {
   iOSSupport: 'iOS',
   WebGLSupport: 'WebGl',
   WindowsStandaloneSupport: 'Windows',
+  windowsstandalonesupport: 'Windows',
   MacStandaloneSupport: 'OSX',
   LinuxStandaloneSupport: 'Linux',
+  Switch: 'Switch',
+  Nx: 'Switch'
 }
 
 const targetMap = {
@@ -60,8 +63,9 @@ function createWindow () {
     getUnityVersions().then((versions) => {
       unityVersions = versions;
       navigateProjects();
-    }).catch(() => {
+    }).catch((err) => {
       console.log('Could not get unity versions')
+      console.log(err);
       navigateProjects();
     });
   }
@@ -140,7 +144,20 @@ function getUnityVersions() {
               }
             })
           );
-        } 
+        } else if (process.platform == "win32") {
+          promises.push(
+            readVersionWin(path.join(config.unitypath, unityFolders[i], 'Editor')).then(({version, filepath}) => {
+              unityVersion[version] = {
+                file: filepath,
+                targets: getPlaybackEngines(path.join(config.unitypath, unityFolders[i], 'Editor', 'Data', 'PlaybackEngines'))
+              };
+            }).catch((err) => {
+              if (err !== 'File does not exist') {
+                console.log(err);
+              }
+            })
+          )
+        }
       }
       Promise.all(promises).then(() => {
         resolve(unityVersion);
@@ -157,7 +174,7 @@ function readVersionOSX(filepath) {
     if (fse.existsSync(filepath)) {
       let child = exec('mdls "' + filepath + '"', (err, stdout, stderr) => {
         if (!err) {
-          let version = processResult(stdout);
+          let version = processResultOSX(stdout);
           resolve({version, filepath});
         } else {
           reject(err);
@@ -169,33 +186,47 @@ function readVersionOSX(filepath) {
   }) 
 }
 
+function readVersionWin(filepath) {
+  return new Promise((resolve, reject) => {
+    const exec = require('child_process').exec;
+    if (fse.existsSync(path.join(filepath, 'Unity.exe'))) {
+      let uninstallPath = path.join(filepath, 'Uninstall.exe');
+      uninstallPath = uninstallPath.replace(/\\+/g, '\\\\');
+      let child = exec('powershell -C "gpv -Path \'' + uninstallPath + '\' -Name VersionInfo | Select FileDescription"', (err, stdout, stderr) => {
+        if (!err) {
+          let version = processResultWin(stdout);
+          resolve({
+            version,
+            filepath: path.join(filepath, 'Unity.exe')
+          });
+        } else {
+          reject(err);
+        }
+      });
+    } else {
+      reject('File does not exist');
+    }
+  })
+}
+
 function getPlaybackEngines(filepath) {
   let playbackEngines = new Array();
   if (fse.existsSync(filepath)) {
     playbackEngines = fse.readdirSync(filepath);
   }
-  let osTarget;
   if (process.platform == 'darwin') {
+    let osTarget;
     osTarget = 'MacStandaloneSupport';
-  } else if (process.platform == 'win32') {
-    osTarget = 'WindowsStandaloneSupport';
-  } else if (process.platform == 'linux') {
-    osTarget = 'LinuxStandaloneSupport';
+    playbackEngines.push(osTarget);
   }
-  playbackEngines.push(osTarget);
   for (let i = 0; i < playbackEngines.length; i++) {
     playbackEngines[i] = targetString[playbackEngines[i]];
   }
   return playbackEngines;
 }
 
-function readVersionWin(filepath) {
-  
-}
 
-
-
-function processResult(stdout) {  
+function processResultOSX(stdout) {
   let lines = stdout.toString().split('\n');
   let results = new Array();
   for (let i = 0; i < lines.length; i++) {
@@ -207,6 +238,17 @@ function processResult(stdout) {
     }
   }
 };
+
+function processResultWin(stdout) {
+  let regex = /[A-Za-z0-9]*\.[A-Za-z0-9]*\.[A-Za-z0-9]*[A-Za-z0-9.]*/g
+  let lines = stdout.toString().split('\r\n');
+  for (let i = 0; i < lines.length; i++) {
+    if (regex.test(lines[i])) {
+      let version = lines[i].replace('Unity', '').replace('Installer', '').trim();
+      return version;
+    }
+  }
+}
 
 
 function sortVersion(a, b) { 
@@ -235,7 +277,12 @@ function loadUnity(id, target, filepath) {
   const exec = require('child_process').exec;
   if (unityVersions[id] != null) {
     if (fse.existsSync(unityVersions[id].file)) {
-      let command = '"' + path.join(unityVersions[id].file, '/Contents/MacOS/Unity') + '"';
+      let command;
+      if (process.platform == 'darwin') {
+        command = '"' + path.join(unityVersions[id].file, '/Contents/MacOS/Unity') + '"';
+      } else if (process.platform == 'win32') {
+        command = '"' + unityVersions[id].file + '"';
+      }
       if (targetMap[target]) {
         command += ' -BuildTarget ' + targetMap[target];
       }
