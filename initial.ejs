@@ -25,7 +25,6 @@
                 <script>
                     let electron = require('electron');
                     function changeSettings(e) {
-                        console.log("aaaaa");
                         let changeSettings = electron.remote.require('./main').changeSettings;
                         changeSettings(e.id, false);
                     }
