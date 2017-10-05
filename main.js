@@ -1,5 +1,6 @@
 const electron = require('electron');
-const ejse = require('ejs-electron')
+const ejse = require('ejs-electron');
+const ejs = require('ejs');
 const app = electron.app;
 
 const BrowserWindow = electron.BrowserWindow;
@@ -36,8 +37,21 @@ const targetMap = {
 let mainWindow
 let unityVersions = [];
 let projects;
+let touchbar;
 
 function createWindow () {
+  let touchbarButton = new electron.TouchBar.TouchBarButton({
+    label: 'Test',
+    backgroundColor: '#7851A9'
+  });
+  let touchbarSlider = new electron.TouchBar.TouchBarSlider({
+    label: 'Other Test',
+    value: 12
+  })
+  touchbar = new electron.TouchBar({
+    items:  [touchbarButton, new electron.TouchBar.TouchBarLabel({label: 'test'}), touchbarSlider]
+  });
+  electron.TouchBar
   mainWindow = new BrowserWindow({
     width: 600,
     height: 600,
@@ -46,6 +60,7 @@ function createWindow () {
     'accept-first-mouse': true,
     'title-bar-style': 'hidden'
   });
+  mainWindow.setTouchBar(touchbar);
   // Emitted when the window is closed.
   mainWindow.on('closed', function () {
     // Dereference the window object, usually you would store windows
@@ -53,24 +68,23 @@ function createWindow () {
     // when you should delete the corresponding element.
     mainWindow = null
   })
+  
 
   if (!config || !config.unitypath || !config.projectspath) {
-    // projects = getProjects();
-    // ejse.data('data', {projects, config});
     mainWindow.loadURL('file://' + __dirname + '/initial.ejs');
-    // console.log(mainWindow.webContents)
   } else {
+    setNavigation();    
     getUnityVersions().then((versions) => {
       unityVersions = versions;
-      navigateProjects();
+      ejse.data('config', config)
+      mainWindow.loadURL('file://' + __dirname + '/index.ejs');
     }).catch((err) => {
       console.log('Could not get unity versions')
       console.log(err);
-      navigateProjects();
+      ejse.data('config', config)
+      mainWindow.loadURL('file://' + __dirname + '/index.ejs');
     });
   }
-  
-
     // Open the DevTools.
     // mainWindow.webContents.openDevTools()
 
@@ -78,7 +92,7 @@ function createWindow () {
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
-// Some APIs can only be used after this event occurs.
+// Some APIs can only be   used after this event occurs.
 app.on('ready', createWindow)
 
 // Quit when all windows are closed.
@@ -336,6 +350,26 @@ function changeSettings(setting, nav) {
       }
     }
   });
+}
+
+function setNavigation() {
+  electron.ipcMain.on('navigation', (event, dest) => {
+    console.log("dest is: " + dest)
+    if (dest == 'projects' || dest == 'versions') {
+      let data;
+      if (dest == 'projects') {
+        projects = getProjects();
+        data = {data: {projects, config}}
+      } else if (dest == 'versions') {
+        let orderedVersions = Object.keys(unityVersions).sort(sortVersion);
+  
+        data = {versions: {ordered: orderedVersions, targets: unityVersions, config}}
+      }
+      let fileContents = fse.readFileSync(path.join(__dirname, dest) + '.ejs')
+      let compiledEjs = ejs.render(fileContents.toString(), data)
+      event.sender.send('navigation', compiledEjs)
+    }
+  })
 }
 
 function navigateVersions() {

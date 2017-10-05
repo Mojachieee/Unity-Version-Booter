@@ -42,3 +42,14 @@
     border: 3px solid #888;
     padding: 10px;
 }
+
+.changeable {
+    width: 100%;
+}
+
+.window-content {
+    position: relative;
+    overflow-y: auto;
+    display: inline;
+    flex: 1;
+}

@@ -1,21 +1,19 @@
 <html lang="en">
-  <head>
-    <title>Unity Version Booter</title>
-    <link rel="stylesheet" href="./css/photon.min.css">
-    <link rel="stylesheet" href="./css/style.css">
-  </head>
-  <body>
-    <div class="window">
+    <head>
+      <title>Unity Version Booter</title>
+      <link rel="stylesheet" href="./css/photon.min.css">
+      <link rel="stylesheet" href="./css/style.css">
+    </head>
+    <body>
+      <div class="window">
         <header class="toolbar toolbar-header">
           <div class="toolbar-actions">
             <div class="btn-group">
-              <button class="btn btn-default">
+              <button id="navVersions" class="btn btn-default" onclick="navigate(this)">
                   Unity Versions
-                <!-- <span class="icon icon-home"></span> -->
               </button>
-              <button class="btn btn-default" onclick="navProjects()">
+              <button id="navProjects" class="btn btn-default" onclick="navigate(this)">
                   Projects
-                <!-- <span class="icon icon-folder"></span> -->
               </button>
               <button class="btn btn-default">
                 <span class="icon icon-cloud"></span>
@@ -26,115 +24,85 @@
             </button>
           </div>
         </header>
-        <div class="window-content">
-          <div id="settingsModal" class="modal">
-            <div class="modal-content">
-              <div class="modal-header">
-                <strong>Select config path</strong>
+          <div class="window-content">
+            <div id="settingsModal" class="modal">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <strong>Select config path</strong>
+                  <span class="close icon icon-cancel icon-large pull-right"></span>
+                </div>
+                <div class="modal-body">
+                  <div id="versionSettings" class="form-group" onclick="changeSettings(this)">
+                    <span>Unity Path:</span>
+                    <input type="text" class="form-control" value="<%= config.unitypath %>" disabled>
+                  </div>
+                  <div id="projectSettings" class="form-group" onclick="changeSettings(this)">
+                    <span>Projects Path:</span>
+                    <input type="text" class="form-control" value="<%= config.projectspath %>" disabled>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div id="errorModal" class="modal">
+                <!-- Modal content -->
+              <div class="modal-content">
                 <span class="close icon icon-cancel icon-large pull-right"></span>
-              </div>
-              <div class="modal-body">
-                <div id="versionSettings" class="form-group" onclick="changeSettings(this)">
-                  <span>Unity Path:</span>
-                  <input type="text" class="form-control" value="<%= versions.config.unitypath %>" disabled>
-                </div>
-                <div id="projectSettings" class="form-group" onclick="changeSettings(this)">
-                  <span>Projects Path:</span>
-                  <input type="text" class="form-control" value="<%= versions.config.projectspath %>" disabled>
-                </div>
+                <strong>An error has occured when loading Unity</strong>
               </div>
             </div>
-          </div>
-          <div id="errorModal" class="modal">
-            <!-- Modal content -->
-            <div class="modal-content">
-              <span class="close icon icon-cancel icon-large pull-right"></span>
-              <strong>An error has occured when loading Unity</strong>
+            <div id="changeable">
             </div>
-          </div>
-          <ul class="list-group">
-            <li class="list-group-header">
-              <input class="form-control" type="text" placeholder="Search for a version">
-            </li>
-            <% for (let i = 0; i < versions.ordered.length; i++) {%>
-              <li class ="list-group-item" onclick="setActive(this)">
-                <div class="media-body">
-                  <strong><%=versions.ordered[i]%></strong>
-                  <p>
-                    <% if (versions.targets[versions.ordered[i]].targets != null) { %>
-                      <% for (let j = 0; j < versions.targets[versions.ordered[i]].targets.length; j++) {%>
-                        <button class="btn btn-targets" id="<%= versions.ordered[i] %>" target="<%= versions.targets[versions.ordered[i]].targets[j] %>">
-                          <!-- <img class="img-rounded" src="./icons/<%= versions.targets[versions.ordered[i]].targets[j] %>.png"> -->
-                          <%=versions.targets[versions.ordered[i]].targets[j]%>
-                        </button>
-                      <% } %>
-                    <% } %>
-                    <button id="<%= versions.ordered[i] %>" class="btn btn-default btn-version pull-right">
-                        <span class="icon icon-play"></span>
-                    </button>
-                  </p>
-                </div>
-              </li>
-            <% } %>
-          </ul>
         </div>
-      </div>
-      <script>
-        let electron = require('electron');
-        let loadUnity = electron.remote.require('./main').loadUnity;
+        <script> 
+            let electron = require('electron');
+            electron.ipcRenderer.on('navigation', (event, html) => {
+                document.getElementById('changeable').innerHTML = html;
+            })
+            electron.ipcRenderer.send('navigation', 'projects');
 
-        let btns = document.getElementsByClassName('btn-version');
-        for (let i = 0; i < btns.length; i++) {
-          btns[i].addEventListener('click', () => {
-            if (!loadUnity(btns[i].id, null, null)) {
-              let modal = document.getElementById('errorModal');
-              modal.style.display = "block";
+            function navigate(e) {
+                if (e.id == 'navVersions') {
+                    electron.ipcRenderer.send('navigation', 'versions');
+                } else if (e.id == 'navProjects') {
+                    electron.ipcRenderer.send('navigation', 'projects');
+                }
             }
-          });
-        }
-        let btnsTarget = document.getElementsByClassName('btn-targets');
-        for (let i = 0; i < btns.length; i++) {
-          btnsTarget[i].addEventListener('click', () => {
-            if (!loadUnity(btnsTarget[i].id, btnsTarget[i].getAttribute('target'), null)) {
-              let modal = document.getElementById('errorModal');
-              modal.style.display = "block";
+
+            function loadUnity(e) {
+                let loadUnity = electron.remote.require('./main').loadUnity;
+                if(!loadUnity(e.id, e.getAttribute('target'), e.getAttribute('path'))) {
+                    let modal = document.getElementById('errorModal');
+                    modal.style.display = "block";
+                }
             }
-          });
-        }
 
-        let modal = document.getElementById("errorModal");
-        let span = document.getElementsByClassName("close")[1];
-        span.onclick = () => {
-            modal.style.display = "none";
-        }
+            let modal = document.getElementById('errorModal');
+            let span = document.getElementsByClassName('close')[1];
+            span.onclick = () => {
+            modal.style.display = 'none';
+            }
 
-        function loadSettings() {
-          let modal = document.getElementById("settingsModal");
-          modal.style.display= "block";
-          span = document.getElementsByClassName("close")[0];
-          span.onclick = () => {
-            modal.style.display = "none";
-          }
-        }
+            function loadSettings() {
+                let modal = document.getElementById("settingsModal");
+                modal.style.display= "block";
+                span = document.getElementsByClassName("close")[0];
+                span.onclick = () => {
+                    modal.style.display = "none";
+                }
+            }
 
-        function changeSettings(e) {
-          let changeSettings = electron.remote.require('./main').changeSettings;
-          changeSettings(e.id, true);
-        }
+            function changeSettings(e) {
+                let changeSettings = electron.remote.require('./main').changeSettings;
+                changeSettings(e.id, true);
+            }
 
-        function navProjects() {
-            console.log("nav called");
-            let navigateProjects = electron.remote.require('./main').navigateProjects;
-            navigateProjects();
-        }
-
-        function setActive(e) {
-          let li = document.getElementsByClassName('active')[0];
-          if (li) {
-            li.classList.remove('active');
-          }
-          e.classList.add('active');
-        }
-      </script>
-  </body>
+            function setActive(e) {
+                let li = document.getElementsByClassName('active')[0];
+                if (li) {
+                    li.classList.remove('active');
+                }
+                e.classList.add('active');
+            }
+        </script>
+    </body>
 </html>
