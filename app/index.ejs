@@ -34,11 +34,11 @@
                 <div class="modal-body">
                   <div id="versionSettings" class="form-group" onclick="changeSettings(this)">
                     <span>Unity Path:</span>
-                    <input type="text" class="form-control" value="<%= config.unitypath %>" disabled>
+                    <input id="versionSettingInput" type="text" class="form-control" value="<%= config.unitypath %>" disabled>
                   </div>
                   <div id="projectSettings" class="form-group" onclick="changeSettings(this)">
                     <span>Projects Path:</span>
-                    <input type="text" class="form-control" value="<%= config.projectspath %>" disabled>
+                    <input id="projectSettingsInput" type="text" class="form-control" value="<%= config.projectspath %>" disabled>
                   </div>
                 </div>
               </div>
@@ -58,6 +58,12 @@
             electron.ipcRenderer.on('navigation', (event, html) => {
                 document.getElementById('changeable').innerHTML = html;
             })
+
+            electron.ipcRenderer.on('path', (event, config) => {
+                document.getElementById('versionSettingInput').setAttribute('value', config.unitypath)
+                document.getElementById('projectSettingsInput').setAttribute('value', config.projectspath)
+                
+            })
             electron.ipcRenderer.send('navigation', 'projects');
 
             function navigate(e) {
@@ -67,6 +73,7 @@
                     electron.ipcRenderer.send('navigation', 'projects');
                 }
             }
+
 
             function loadUnity(e) {
                 let loadUnity = electron.remote.require('./main').loadUnity;

@@ -2,19 +2,49 @@
   "name": "unity-version-booter",
   "version": "1.0.0",
   "description": "A version booter for Unity",
-  "main": "main.js",
+  "main": "./app/main.js",
   "dependencies": {
-    "ejs-electron": "^2.0.1",
-    "electron": "^1.7.8",
-    "fs-extra": "^4.0.2"
+    "ejs-electron": "2.0.1",
+    "fs-extra": "4.0.2"
   },
   "devDependencies": {
-    "electron": "1.7.6"
+    "electron": "1.7.8",
+    "electron-builder": "^19.34.1"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "electron ."
+    "postinstall": "electron-builder install-app-dep",
+    "start": "npm install && electron ./app",
+    "pack": "build --dir",
+    "dist": "build"
   },
-  "author": "",
-  "license": "ISC"
+  "author": "joe@unity3d.com",
+  "license": "ISC",
+  "build": {
+    "appId": "com.unity.joes",
+    "dmg": {
+      "contents": [
+        {
+          "x": 110,
+          "y": 150
+        },
+        {
+          "x": 240,
+          "y": 150,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ],
+      "icon": "build/icon.icns"
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ]
+    },
+    "win": {
+      "target": "NSIS",
+      "icon": "build/icon.png"
+    }
+  }
 }

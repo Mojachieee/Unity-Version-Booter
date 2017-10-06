@@ -338,14 +338,22 @@ function changeSettings(setting, nav) {
         getUnityVersions().then((versions) => {
           unityVersions = versions;
           if (nav) {
-            navigateVersions();
+              let orderedVersions = Object.keys(unityVersions).sort(sortVersion);
+              let data = {versions: {ordered: orderedVersions, targets: unityVersions, config}}
+              let fileContents = fse.readFileSync(path.join(__dirname, 'versions') + '.ejs')
+              let compiledEjs = ejs.render(fileContents.toString(), data)
+              mainWindow.webContents.send('navigation', compiledEjs);
           }
         }).catch(() => {
           console.log('Could not get unity versions')
         });
       } else {
         if (nav) {
-          navigateProjects();
+          projects = getProjects();
+          let data = {data: {projects, config}}
+          let fileContents = fse.readFileSync(path.join(__dirname, 'projects') + '.ejs')
+          let compiledEjs = ejs.render(fileContents.toString(), data)
+          mainWindow.webContents.send('navigation', compiledEjs)
         }
       }
     }
