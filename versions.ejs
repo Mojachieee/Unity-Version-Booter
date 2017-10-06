@@ -1,0 +1,26 @@
+<ul class="list-group">
+    <li class="list-group-header">
+      <input class="form-control" type="text" placeholder="Search for a version">
+    </li>
+    <% for (let i = 0; i < versions.ordered.length; i++) {%>
+      <li class ="list-group-item" onclick="setActive(this)">
+        <div class="media-body">
+          <strong><%=versions.ordered[i]%></strong>
+          <p>
+            <% if (versions.targets[versions.ordered[i]].targets != null) { %>
+              <% for (let j = 0; j < versions.targets[versions.ordered[i]].targets.length; j++) {%>
+                <button class="btn btn-targets" id="<%= versions.ordered[i] %>" target="<%= versions.targets[versions.ordered[i]].targets[j] %>" onclick="loadUnity(this)">
+                  <!-- <img class="img-rounded" src="./icons/<%= versions.targets[versions.ordered[i]].targets[j] %>.png"> -->
+                  <%=versions.targets[versions.ordered[i]].targets[j]%>
+                </button>
+              <% } %>
+            <% } %>
+            <button id="<%= versions.ordered[i] %>" class="btn btn-default btn-version pull-right" onclick="loadUnity(this)">
+                <span class="icon icon-play"></span>
+            </button>
+          </p>
+        </div>
+      </li>
+    <% } %>
+  </ul>
+</div>
