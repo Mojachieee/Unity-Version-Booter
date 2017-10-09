@@ -22,6 +22,9 @@
             <button class="btn btn-default pull-right" onclick="loadSettings()">
               <span class="icon icon-cog"></span>
             </button>
+            <button class="btn btn-default pull-right" onclick="refresh(this)">
+                <span class="icon icon-cw"></span>
+            </button>
           </div>
         </header>
           <div class="window-content">
@@ -53,10 +56,12 @@
             <div id="changeable">
             </div>
         </div>
-        <script> 
+        <script>
+            let currentPage;
             let electron = require('electron');
-            electron.ipcRenderer.on('navigation', (event, html) => {
+            electron.ipcRenderer.on('navigation', (event, html, dest) => {
                 document.getElementById('changeable').innerHTML = html;
+                currentPage = dest;
             })
 
             electron.ipcRenderer.on('path', (event, config) => {
@@ -112,7 +117,6 @@
             }
 
             function search(e) {
-                console.log("search")
                 let filter = e.value;
                 let list = document.getElementById('searchList');
                 let li = list.getElementsByTagName('li');
@@ -125,6 +129,12 @@
                             li[i].style.display = "none";
                         }
                     }
+                }
+            }
+
+            function refresh(e) {
+                if (document.getElementById('navVersions')) {
+                    electron.ipcRenderer.send('refresh', currentPage);
                 }
             }
         </script>

@@ -81,7 +81,8 @@ function createWindow () {
     config = new Object();
     mainWindow.loadURL('file://' + __dirname + '/initial.ejs');
   } else {
-    setNavigation();    
+    setNavigation();
+    setRefresh();
     getUnityVersions().then((versions) => {
       unityVersions = versions;
       ejse.data('config', config)
@@ -386,7 +387,7 @@ function setNavigation() {
       }
       let fileContents = fse.readFileSync(path.join(__dirname, dest) + '.ejs')
       let compiledEjs = ejs.render(fileContents.toString(), data)
-      event.sender.send('navigation', compiledEjs)
+      event.sender.send('navigation', compiledEjs, dest)
     }
   })
 }
@@ -410,6 +411,27 @@ function navigateProjects() {
   projects = getProjects();
   ejse.data('data', {projects, config});
   mainWindow.loadURL('file://' + __dirname + '/projects.ejs');
+}
+
+function setRefresh() {
+  electron.ipcMain.on('refresh', (event, dest) => {
+    projects = getProjects();
+    getUnityVersions().then((versions) => {
+      unityVersions = versions;
+    }).then(() => {
+      let data;
+      if (dest == 'projects') {
+        projects = getProjects();
+        data = {data: {projects, config}}
+      } else if (dest == 'versions') {
+        let orderedVersions = Object.keys(unityVersions).sort(sortVersion);
+        data = {versions: {ordered: orderedVersions, targets: unityVersions, config}}
+      }
+      let fileContents = fse.readFileSync(path.join(__dirname, dest) + '.ejs')
+      let compiledEjs = ejs.render(fileContents.toString(), data)
+      event.sender.send('navigation', compiledEjs, dest)
+    });
+  });
 }
 
 module.exports = {
