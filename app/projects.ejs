@@ -1,6 +1,6 @@
-    <ul class="list-group">
+    <ul id="searchList" class="list-group">
       <li class="list-group-header">
-        <input class="form-control" type="text" placeholder="Search for a project">
+        <input class="form-control" type="text" placeholder="Search for a project" onkeyup="search(this)">
       </li>
       <% for (let i = 0; i < data.projects.length; i++) { %>
         <li class="list-group-item" onclick="setActive(this)">
