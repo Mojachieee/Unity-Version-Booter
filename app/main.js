@@ -9,7 +9,10 @@ const path = require('path');
 const url = require('url');
 const fse = require('fs-extra');
 
-let config = require('./config.json');
+const Store = require('electron-store');
+const store = new Store();
+
+let config = store.get('config');
 
 const targetString = {
   AndroidPlayer: 'Android',
@@ -75,6 +78,7 @@ function createWindow () {
   
 
   if (!config || !config.unitypath || !config.projectspath) {
+    config = new Object();
     mainWindow.loadURL('file://' + __dirname + '/initial.ejs');
   } else {
     setNavigation();    
@@ -337,9 +341,10 @@ function changeSettings(setting, nav) {
       }
   
       mainWindow.webContents.send('path', config);
-      fse.outputJson('./app/config.json', config, (err) => {
-        console.log(err);
-      })
+      store.set('config', config)
+      // fse.outputJson('./app/config.json', config, (err) => {
+      //   console.log(err);
+      // })
       if (setting == 'versionSettings') {
         getUnityVersions().then((versions) => {
           unityVersions = versions;
