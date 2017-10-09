@@ -30,8 +30,8 @@
                     }
 
                     function loadMain() {
-                        let navigateVersions = electron.remote.require('./main').navigateVersions;
-                        navigateVersions();
+                        let navigateMain = electron.remote.require('./main').navigateMain;
+                        navigateMain();
                     }
                     electron.ipcRenderer.on('path' , (event, {unitypath, projectspath}) => {
                         if (unitypath) {

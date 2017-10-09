@@ -20,7 +20,9 @@ const targetString = {
   MacStandaloneSupport: 'OSX',
   LinuxStandaloneSupport: 'Linux',
   Switch: 'Switch',
-  Nx: 'Switch'
+  Nx: 'Switch',
+  PS4Player: 'PS4',
+  XboxOnePlayer: 'XBone'
 }
 
 const targetMap = {
@@ -30,6 +32,8 @@ const targetMap = {
   Windows: 'win64',
   OSX: 'osx',
   Linux: 'linux64',
+  PS4: 'ps4',
+  XBone: 'xboxone'
 }
 
 // Keep a global reference of the window object, if you don't, the window will
@@ -333,7 +337,9 @@ function changeSettings(setting, nav) {
       }
   
       mainWindow.webContents.send('path', config);
-      fse.writeFile('./config.json', JSON.stringify(config));
+      fse.outputJson('./app/config.json', config, (err) => {
+        console.log(err);
+      })
       if (setting == 'versionSettings') {
         getUnityVersions().then((versions) => {
           unityVersions = versions;
@@ -380,6 +386,15 @@ function setNavigation() {
   })
 }
 
+function navigateMain() {
+  setNavigation();
+  getUnityVersions().then((versions) => {
+    unityVersions = versions;
+    ejse.data('config', config)
+    mainWindow.loadURL('file://' + __dirname + '/index.ejs');
+  });
+}
+
 function navigateVersions() {
   let orderedVersions = Object.keys(unityVersions).sort(sortVersion);
   ejse.data('versions', {ordered: orderedVersions, targets: unityVersions, config});
@@ -393,8 +408,7 @@ function navigateProjects() {
 }
 
 module.exports = {
-  navigateProjects,
-  navigateVersions,
+  navigateMain,
   loadUnity,
   changeSettings
 }
