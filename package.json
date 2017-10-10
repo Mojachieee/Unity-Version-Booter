@@ -13,10 +13,10 @@
     "electron-builder": "^19.34.1"
   },
   "scripts": {
-    "postinstall": "electron-builder install-app-dep",
-    "start": "npm install && electron ./app",
+    "start": "electron .",
     "pack": "build --dir",
-    "dist": "build"
+    "dist": "build",
+    "build": "npm install && electron-builder install-app-dep"
   },
   "author": "joe@unity3d.com",
   "license": "ISC",
