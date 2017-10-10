@@ -43,6 +43,14 @@
                     <span>Projects Path:</span>
                     <input id="projectSettingsInput" type="text" class="form-control" value="<%= config.projectspath %>" disabled>
                   </div>
+                  <div id="projectsDepth" class="form-group">
+                      <span>Project Search Depth:</span>
+                      <input id="projectDepthInput" type="text" class="" value="<%=config.maxDepth %>">
+                        <button onclick="saveSettings()" class="btn btn-default pull-right">
+                            Save
+                        </button>
+                  </div>
+                
                 </div>
               </div>
             </div>
@@ -106,6 +114,13 @@
             function changeSettings(e) {
                 let changeSettings = electron.remote.require('./main').changeSettings;
                 changeSettings(e.id, true);
+            }
+
+            function saveSettings() {
+                let depth = document.getElementById('projectDepthInput').value;
+                console.log(depth)
+                let changeDepth = electron.remote.require('./main').changeDepth;
+                changeDepth(depth);
             }
 
             function setActive(e) {

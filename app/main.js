@@ -13,6 +13,9 @@ const Store = require('electron-store');
 const store = new Store();
 
 let config = store.get('config');
+if (!config.maxDepth) {
+  config.maxDepth = 1;
+}
 
 const targetString = {
   AndroidPlayer: 'Android',
@@ -47,18 +50,6 @@ let projects;
 let touchbar;
 
 function createWindow () {
-  let touchbarButton = new electron.TouchBar.TouchBarButton({
-    label: 'Test',
-    backgroundColor: '#7851A9'
-  });
-  let touchbarSlider = new electron.TouchBar.TouchBarSlider({
-    label: 'Other Test',
-    value: 12
-  })
-  touchbar = new electron.TouchBar({
-    items:  [touchbarButton, new electron.TouchBar.TouchBarLabel({label: 'test'}), touchbarSlider]
-  });
-  electron.TouchBar
   mainWindow = new BrowserWindow({
     width: 600,
     height: 600,
@@ -124,26 +115,37 @@ app.on('activate', function () {
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.
 
-
 function getProjects() {
   let projects = new Array();
-  if (fse.existsSync(config.projectspath)) {
-    let projectFolders = fse.readdirSync(config.projectspath);
-    
+  projects = getProjectsRecur(config.projectspath, 0);
+  return projects;
+
+}
+
+
+function getProjectsRecur(filepath, depth) {
+  if (depth < config.maxDepth) {
+    let projects = new Array();
+    if (fse.existsSync(filepath)) {
+      let projectFolders = fse.readdirSync(filepath);
       for (let i = 0; i < projectFolders.length; i++) {
-        if (fse.existsSync(path.join(config.projectspath, projectFolders[i], '/ProjectSettings/ProjectVersion.txt'))) {
-          let version = fse.readFileSync(path.join(config.projectspath, projectFolders[i], '/ProjectSettings/ProjectVersion.txt')).toString();
+        if (fse.statSync(path.join(filepath, projectFolders[i])).isDirectory() && projectFolders[i] != 'Library' && projectFolders[i] != 'Assets' && projectFolders[i] != 'Temp') {
+          projects.push.apply(projects, getProjectsRecur(path.join(filepath, projectFolders[i]), depth+1));
+        }
+        if (fse.existsSync(path.join(filepath, projectFolders[i], '/ProjectSettings/ProjectVersion.txt'))) {
+          let version = fse.readFileSync(path.join(filepath, projectFolders[i], '/ProjectSettings/ProjectVersion.txt')).toString();
           version = version.replace('m_EditorVersion: ', '');
           version = version.replace('\n', '');
-          projects[projects.length] = {
+          projects.push({
             name: projectFolders[i],
             path: path.join(config.projectspath, projectFolders[i]),
             version: version
-          }
+          });
         }
       }
+    }
+    return projects;
   }
-  return projects;
 }
 
 function getUnityVersions() {
@@ -343,9 +345,6 @@ function changeSettings(setting, nav) {
   
       mainWindow.webContents.send('path', config);
       store.set('config', config)
-      // fse.outputJson('./app/config.json', config, (err) => {
-      //   console.log(err);
-      // })
       if (setting == 'versionSettings') {
         getUnityVersions().then((versions) => {
           unityVersions = versions;
@@ -370,6 +369,13 @@ function changeSettings(setting, nav) {
       }
     }
   });
+}
+
+function changeDepth(depth) {
+  if (!isNaN(depth)) {
+    config.maxDepth = depth;
+    store.set('config', config);
+  }
 }
 
 function setNavigation() {
@@ -437,5 +443,6 @@ function setRefresh() {
 module.exports = {
   navigateMain,
   loadUnity,
-  changeSettings
+  changeSettings,
+  changeDepth
 }
