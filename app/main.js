@@ -138,7 +138,7 @@ function getProjectsRecur(filepath, depth) {
           version = version.replace('\n', '');
           projects.push({
             name: projectFolders[i],
-            path: path.join(config.projectspath, projectFolders[i]),
+            path: path.join(filepath, projectFolders[i]),
             version: version
           });
         }
