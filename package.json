@@ -1,6 +1,6 @@
 {
   "name": "unity-version-booter",
-  "version": "1.0.2",
+  "version": "1.0.21",
   "description": "A version booter for Unity",
   "main": "./app/main.js",
   "dependencies": {

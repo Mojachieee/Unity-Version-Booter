@@ -384,7 +384,10 @@ function setNavigation() {
     if (dest == 'projects' || dest == 'versions') {
       let data;
       if (dest == 'projects') {
-        projects = getProjects();
+        if (!projects) {
+          projects = getProjects();
+        }
+        // projects = getProjects();
         data = {data: {projects, config}}
       } else if (dest == 'versions') {
         let orderedVersions = Object.keys(unityVersions).sort(sortVersion);
@@ -440,9 +443,18 @@ function setRefresh() {
   });
 }
 
+function loadFinder(path, id) {
+  if (path) {
+    electron.shell.showItemInFolder(path)
+  } else {
+    electron.shell.showItemInFolder(unityVersions[id].file)
+  }
+}
+
 module.exports = {
   navigateMain,
   loadUnity,
   changeSettings,
-  changeDepth
+  changeDepth,
+  loadFinder
 }
