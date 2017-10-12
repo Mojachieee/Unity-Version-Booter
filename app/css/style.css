@@ -53,3 +53,7 @@
     display: inline;
     flex: 1;
 }
+
+.background-gray {
+    background-color: rgb(223, 223, 223);
+}

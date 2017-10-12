@@ -132,16 +132,25 @@
 
             function search(e) {
                 let filter = e.value;
-                let list = document.getElementById('searchList');
-                let li = list.getElementsByTagName('li');
-                for (let i = 0; i < li.length; i++) {
-                    let text = li[i].getElementsByTagName('strong')[0];
-                    if (text) {
-                        if (text.textContent.indexOf(filter) > -1) {
-                            li[i].style.display = "";
-                        } else {
-                            li[i].style.display = "none";
+                let lists = document.getElementsByClassName('searchable')
+                for (let i = 0; i < lists.length; i++) {
+                    let children = false;
+                    let li = lists[i].getElementsByClassName('loadable');
+                    for (let j = 0; j < li.length; j++) {
+                        let text = li[j].getElementsByTagName('strong')[0];
+                        if (text) {
+                            if (text.textContent.indexOf(filter) > -1) {
+                                li[j].style.display = "";
+                                children = true;
+                            } else {
+                                li[j].style.display = "none";
+                            }
                         }
+                    }
+                    if (children && !lists[i].firstElementChild.classList.contains('loadable')) {
+                        lists[i].firstElementChild.style.display = "";
+                    } else {
+                        lists[i].firstElementChild.style.display = "none";
                     }
                 }
             }

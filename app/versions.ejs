@@ -1,9 +1,10 @@
-<ul id="searchList" class="list-group">
+<ul class="list-group">
     <li class="list-group-header">
       <input class="form-control" type="text" placeholder="Search for a version" onkeyup="search(this)">
     </li>
+    <div class="searchable">
     <% for (let i = 0; i < versions.ordered.length; i++) {%>
-      <li class ="list-group-item" onclick="setActive(this)" oncontextmenu="rightClickContextMenu(this)">
+      <li class ="list-group-item loadable" onclick="setActive(this)" oncontextmenu="rightClickContextMenu(this)">
         <div class="media-body">
           <strong><%=versions.ordered[i]%></strong>
           <p>
@@ -22,5 +23,6 @@
         </div>
       </li>
     <% } %>
+  </div>
   </ul>
 </div>

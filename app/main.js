@@ -117,7 +117,7 @@ app.on('activate', function () {
 // code. You can also put them in separate files and require them here.
 
 function getProjects() {
-  let projects = new Array();
+  let projects = new Object();
   projects = getProjectsRecur(config.projectspath, 0);
   return projects;
 
@@ -137,11 +137,18 @@ function getProjectsRecur(filepath, depth) {
           let version = fse.readFileSync(path.join(filepath, projectFolders[i], '/ProjectSettings/ProjectVersion.txt')).toString();
           version = version.replace('m_EditorVersion: ', '');
           version = version.replace('\n', '');
-          projects.push({
-            name: projectFolders[i],
-            path: path.join(filepath, projectFolders[i]),
-            version: version
-          });
+          if (projects[version]) {
+            projects[version].push({
+              name: projectFolders[i],
+              path: path.join(filepath, projectFolders[i]),
+            });
+          } else {
+            projects[version] = new Array();
+            projects[version].push({
+              name: projectFolders[i],
+              path: path.join(filepath, projectFolders[i]),
+            });
+          }
         }
       }
     }
@@ -388,8 +395,8 @@ function setNavigation() {
         if (!projects) {
           projects = getProjects();
         }
-        // projects = getProjects();
-        data = {data: {projects, config}}
+        let versions = Object.keys(projects).sort(sortVersion);
+        data = {data: {versions, projects, config}}
       } else if (dest == 'versions') {
         let orderedVersions = Object.keys(unityVersions).sort(sortVersion);
   
