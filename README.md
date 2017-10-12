@@ -9,3 +9,6 @@ To build
 
 To run
 `npm i && npm start`
+
+Download built versions from here:
+https://oc.unity3d.com/index.php/s/fBCJ8dUWSpJnriV
