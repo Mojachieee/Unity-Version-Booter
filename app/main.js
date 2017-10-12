@@ -13,7 +13,7 @@ const Store = require('electron-store');
 const store = new Store();
 
 let config = store.get('config');
-if (!config.maxDepth) {
+if (config && !config.maxDepth) {
   config.maxDepth = 1;
 }
 
@@ -70,6 +70,7 @@ function createWindow () {
 
   if (!config || !config.unitypath || !config.projectspath) {
     config = new Object();
+    config.maxDepth = 1;
     mainWindow.loadURL('file://' + __dirname + '/initial.ejs');
   } else {
     setNavigation();
